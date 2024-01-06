@@ -1,0 +1,128 @@
+const fs = require('fs');
+const Movie = require('./movies.controller');
+
+//Cargando los datos del archivo y convirtiendolos en un objeto js
+let movies = JSON.parse(fs.readFileSync('./data/movies.json'));
+
+exports.checkId = (req, res, next, value) => {
+  console.log(`Movie id is ${value}`);
+
+  //buscar el id en el json movies con el id parameter
+  let movie = movies.find((el) => el.id === value * 1);
+
+  //verificar si la pelicula que buscamos existe
+  if(!movie){
+    return res.status(404).json({
+      status: "fail",
+      message: `Movie with id: ${value}, is not found!`
+    });
+  }
+
+  next();
+}
+
+exports.getAllMovies = (req, res) => {
+  res.status(200).json({
+    status: "sucess",
+    count: movies.length,
+    data: { movies }
+  });
+}
+
+exports.createMovie = (req, res) => {
+  
+  // Calculando el nuevo id
+  const newId = movies[movies.length -1].id + 1;
+
+  // Agregando el id al nuevo objeto 
+  const newMovie = Object.assign({id: newId}, req.body);
+  
+  // Agregar newMovie a movies
+  movies.push(newMovie);
+
+  //Escribiendo movies en el archivo movies.json
+  // Y convirtiendo movies de objeto js a json
+  fs.writeFile('./data/movies.json', JSON.stringify(movies), (err) => {
+    res.status(201).json({
+      status: "sucess",
+      data: { movie: newMovie }
+    });
+  });
+}
+
+exports.getMovie = (req, res) => {
+  const id = req.params.id * 1;
+
+  //buscar el id en el json movies con el id parameter
+  let movie = movies.find((el) => el.id === id);
+
+  res.status(200).json({
+    status: "sucess",
+    data: { movie }
+  });
+}
+
+exports.updateMovie = (req, res) => {
+  //Capturando el parametro y convirtiendo en numero
+  const id = req.params.id * 1;
+
+  //buscar el id en el json movies con el id parameter
+  let movie = movies.find((el) => el.id === id);
+
+  //verificar si la pelicula que buscamos existe
+  /* if(!movie){
+    return res.status(404).json({
+      status: "fail",
+      message: `Movie with id: ${id}, is not found!`
+    });
+  } */
+
+  // Extrayendo el indice
+  let index = movies.indexOf(movie);
+  
+  // Agregando la actualizacion
+  const movUpdated = Object.assign(movie, req.body);
+  
+  // Actualizando movies
+  movies[index] = movUpdated;
+  //console.log(movies);
+
+  //Escribiendo el cambio en movies.json
+  // Y convirtiendo movies de objeto js a json
+  fs.writeFile('./data/movies.json', JSON.stringify(movies), (err) => {
+    res.status(200).json({
+      status: "sucess",
+      data: { movie: movUpdated }
+    });
+  });
+}
+
+exports.deleteMovie = (req, res) => {
+  //Capturando el parametro y convirtiendo en numero
+  const id = req.params.id * 1;
+
+  //buscar el id en el json movies con el id parameter
+  let movToDelete = movies.find((el) => el.id === id);
+
+  //verificar si la pelicula que buscamos existe
+  /* if(!movToDelete){
+    return res.status(404).json({
+      status: "fail",
+      message: `Movie with id: ${id}, is not found!`
+    });
+  } */
+
+  // Extrayendo el indice
+  let index = movies.indexOf(movToDelete);
+
+  //Quitando movToDelee de movies
+  movies.splice(index, 1);
+
+  //Re-escribiendo el json
+  fs.writeFile('./data/movies.json', JSON.stringify(movies), (err) => {
+    res.status(200).json({
+      status: "success",
+      data: { movie: null }
+    });
+  });  
+}
