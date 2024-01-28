@@ -13,7 +13,7 @@ class Apifeatures {
     queryString = queryString.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
     const queryObj = JSON.parse(queryString);
     
-    console.log(queryObj);
+    // console.log(queryObj);
     
     this.query = this.query.find(queryObj);
 
